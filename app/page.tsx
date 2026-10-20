@@ -42,6 +42,8 @@ function OrbitMark({ small = false }: {
 export default function Home() {
     const [orders, setOrders] = useState<Order[]>(seedOrders), [category, setCategory] = useState("all"), [source, setSource] = useState("all"), [query, setQuery] = useState(""), [saved, setSaved] = useState<string[]>([]), [savedOnly, setSavedOnly] = useState(false), [sort, setSort] = useState("recent"), [view, setView] = useState("grid"), [requestOpen, setRequestOpen] = useState(false), [selected, setSelected] = useState<Order | null>(null), [filtersOpen, setFiltersOpen] = useState(false), [infoOpen, setInfoOpen] = useState(false), [isAdmin, setIsAdmin] = useState(false), [loading, setLoading] = useState(true), [error, setError] = useState(false), [notice, setNotice] = useState("");
     const searchRef = useRef<HTMLInputElement>(null), detailRef = useRef<HTMLDialogElement>(null);
+    const ordersGridRef = useRef<HTMLDivElement>(null);
+    const revealedOrderIds = useRef(new Set<string>());
     async function loadOrders() { setLoading(true); setError(false); try {
         const r = await fetch("/api/orders", { cache: "no-store" });
         if (!r.ok)
@@ -104,11 +106,59 @@ export default function Home() {
     }
     catch { } return next; }); }
     const filtered = orders.filter(o => (category === "all" || o.category === category) && (source === "all" || (source === "orbit" ? o.source === "Orbit" : o.source !== "Orbit")) && (!savedOnly || saved.includes(o.id)) && `${o.title} ${o.description} ${o.tags.join(" ")} ${o.source}`.toLowerCase().includes(query.toLowerCase())).sort((a, b) => sort === "name" ? a.title.localeCompare(b.title, "ru") : new Date(b.checkedAt).getTime() - new Date(a.checkedAt).getTime());
+    const visibleOrderIds = JSON.stringify(filtered.map(order => order.id));
+    useEffect(() => {
+        const grid = ordersGridRef.current;
+        if (!grid) return;
+        const cards = Array.from(grid.querySelectorAll<HTMLElement>(".order-card"));
+        const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+        let observer: IntersectionObserver | undefined;
+        const reveal = (card: HTMLElement) => {
+            card.dataset.reveal = "visible";
+            if (card.dataset.orderId) revealedOrderIds.current.add(card.dataset.orderId);
+            observer?.unobserve(card);
+        };
+        const observeCards = () => {
+            observer?.disconnect();
+            if (reducedMotion.matches || !("IntersectionObserver" in window)) {
+                cards.forEach(reveal);
+                return;
+            }
+            observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) reveal(entry.target as HTMLElement);
+                });
+            }, { threshold: 0.08, rootMargin: "0px 0px -6% 0px" });
+            const revealLine = window.innerHeight * 0.94;
+            cards.forEach(card => {
+                const alreadySeen = card.dataset.orderId && revealedOrderIds.current.has(card.dataset.orderId);
+                if (alreadySeen || card.getBoundingClientRect().top < revealLine || card.contains(document.activeElement)) {
+                    reveal(card);
+                } else {
+                    card.dataset.reveal = "pending";
+                    observer?.observe(card);
+                }
+            });
+        };
+        const revealFocused = (event: FocusEvent) => {
+            const card = event.target instanceof Element ? event.target.closest<HTMLElement>(".order-card") : null;
+            if (card && grid.contains(card)) reveal(card);
+        };
+        observeCards();
+        grid.addEventListener("focusin", revealFocused);
+        reducedMotion.addEventListener("change", observeCards);
+        return () => {
+            observer?.disconnect();
+            grid.removeEventListener("focusin", revealFocused);
+            reducedMotion.removeEventListener("change", observeCards);
+            cards.forEach(card => { delete card.dataset.reveal; });
+        };
+    }, [visibleOrderIds, view]);
     return <div className="site-shell">
  <main><OrbitExperience onRequest={() => setRequestOpen(true)} onInfo={() => setInfoOpen(true)} onSaved={() => {setSavedOnly(true); document.getElementById("projects")?.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});}} savedCount={saved.length} savedOnly={savedOnly} />
  <section className="projects-section" id="projects"><div className="projects-heading"><div><div className="eyebrow muted">ВАШ СЛЕДУЮЩИЙ ПРОЕКТ</div><h2>Пространство возможностей<span className="count-pill">{orders.length}</span></h2></div><span className="updated-label"><span className="status-dot"/>Источники проверены 20 октября</span></div><div className="board-layout"><aside id="project-filters" className={`filter-sidebar ${filtersOpen ? "mobile-expanded" : ""}`}><div className="sidebar-title">Направление<SlidersHorizontal size={14}/></div>{[{ id: "all", label: "Все проекты", count: orders.length, icon: <LayoutGrid size={16}/> }, { id: "website", label: "Веб-сайты", count: orders.filter(o => o.category === "website").length, icon: <Globe2 size={16}/> }, { id: "app", label: "Приложения", count: orders.filter(o => o.category === "app").length, icon: <Smartphone size={16}/> }].map(c => <button key={c.id} className={`filter-item ${category === c.id ? "selected" : ""}`} aria-pressed={category === c.id} onClick={() => setCategory(c.id)}>{c.icon}<span>{c.label}</span><i>{c.count}</i></button>)}<div className="sidebar-divider"/><div className="sidebar-title">Источник</div>{[{ id: "all", label: "Все источники" }, { id: "orbit", label: "Заявки в Orbit" }, { id: "external", label: "Внешние площадки" }].map(s => <label className="source-choice" key={s.id}><input type="radio" name="source" checked={source === s.id} onChange={() => setSource(s.id)}/><span>{s.label}</span></label>)}<div className="sidebar-divider"/><button className={`filter-item saved-filter ${savedOnly ? "selected" : ""}`} aria-pressed={savedOnly} onClick={() => setSavedOnly(!savedOnly)}><Bookmark size={15}/><span>Избранные проекты</span><i>{saved.length}</i></button><div className="sidebar-note"><ShieldCheck size={20}/><strong>Прозрачно с первого клика</strong><p>У каждого проекта — реальный источник. Условия связи указаны в карточке.</p><button onClick={() => setInfoOpen(true)}>Узнать больше<ArrowUpRight size={13}/></button></div></aside>
  <div className="project-board"><div className="board-toolbar"><label className="project-search"><Search size={18}/><input ref={searchRef} value={query} onChange={e => setQuery(e.target.value)} placeholder="Название, технология или идея…" aria-label="Поиск проектов"/>{query ? <button onClick={() => setQuery("")} aria-label="Очистить поиск"><X size={14}/></button> : <kbd>/</kbd>}</label><button className="mobile-filter-button" aria-expanded={filtersOpen} aria-controls="project-filters" onClick={() => setFiltersOpen(!filtersOpen)} aria-label="Показать фильтры"><SlidersHorizontal size={18}/></button><div className="view-switch"><button aria-label="Сетка" aria-pressed={view === "grid"} className={view === "grid" ? "on" : ""} onClick={() => setView("grid")}><LayoutGrid size={16}/></button><button aria-label="Список" aria-pressed={view === "list"} className={view === "list" ? "on" : ""} onClick={() => setView("list")}><List size={17}/></button></div></div><div className="results-toolbar"><span><span className="tiny-dot"/>{savedOnly ? "В избранном" : "Подобрано для вас"}<b>{filtered.length}</b></span><label className="sort-label"><select aria-label="Сортировка" value={sort} onChange={e => setSort(e.target.value)}><option value="recent">По дате проверки</option><option value="name">По названию</option></select><ChevronDown size={13}/></label></div>{error && <div className="load-warning">Внешние проекты доступны. Не удалось загрузить заявки Orbit.<button onClick={loadOrders}>Повторить<RefreshCw size={13}/></button></div>}
- <div className={`orders-grid ${view === "list" ? "list-view" : ""}`} aria-live="polite">{filtered.map((order, index) => <article key={order.id} className={`order-card ${index === 0 ? "first-card" : ""}`} style={{ "--card-delay": `${Math.min(index, 5) * 70}ms` } as CSSProperties} onMouseMove={e => { if (window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+ <div ref={ordersGridRef} className={`orders-grid ${view === "list" ? "list-view" : ""}`} aria-live="polite">{filtered.map((order, index) => <article key={order.id} data-order-id={order.id} className={`order-card ${index === 0 ? "first-card" : ""}`} style={{ "--card-delay": `${index % 2 * 60}ms` } as CSSProperties} onMouseMove={e => { if (window.matchMedia("(prefers-reduced-motion: reduce)").matches)
         return; const r = e.currentTarget.getBoundingClientRect(); e.currentTarget.style.setProperty("--rx", `${-(e.clientY - r.top - r.height / 2) / 90}deg`); e.currentTarget.style.setProperty("--ry", `${(e.clientX - r.left - r.width / 2) / 90}deg`); }} onMouseLeave={e => { e.currentTarget.style.setProperty("--rx", "0deg"); e.currentTarget.style.setProperty("--ry", "0deg"); }}><div className="card-shine"/><div className="card-top"><span className={`project-icon ${order.category === "app" ? "app-icon" : ""}`}>{order.category === "website" ? <Globe2 size={22}/> : <Smartphone size={22}/>}</span><div className="card-category"><span>{categoryNames[order.category]}</span><small>{order.kind}</small></div><button className={`bookmark-button ${saved.includes(order.id) ? "is-saved" : ""}`} aria-label={saved.includes(order.id) ? "Убрать из избранного" : "Сохранить проект"} aria-pressed={saved.includes(order.id)} onClick={() => toggleSave(order.id)}><Bookmark size={17} fill={saved.includes(order.id) ? "currentColor" : "none"}/></button></div><button className="card-title" onClick={() => setSelected(order)}><h3>{order.title}</h3></button><p className="card-description">{order.description}</p><div className="tag-list">{order.tags.slice(0, 3).map(tag => <button key={tag} onClick={() => setQuery(tag)}>{tag}</button>)}</div><div className="card-budget"><strong>{order.budget || "Бюджет обсуждается"}</strong><span>{order.deadline || "Проектная работа"}</span></div><div className="card-bottom"><span className="source-badge"><span className={`source-dot ${order.source === "Orbit" ? "orbit-source" : ""}`}/>{order.source}<span className="source-check" title="Источник проверен"><Check size={10}/></span></span><button onClick={() => setSelected(order)}>Подробнее<ArrowUpRight size={16}/></button></div></article>)}</div>
  {filtered.length === 0 && <div className="empty-state"><Search size={30}/><h3>{savedOnly ? "Здесь будут избранные проекты" : "На этой орбите пока тихо"}</h3><p>{savedOnly ? "Нажмите на закладку у проекта, чтобы вернуться к нему позже." : "Попробуйте другое слово или сбросьте фильтры."}</p><button className="button outline" onClick={() => { setQuery(""); setCategory("all"); setSource("all"); setSavedOnly(false); }}>Все проекты<ArrowRight size={16}/></button></div>}<div className="board-footnote"><ShieldCheck size={14}/><span>Реальные публикации. Доступность и условия уточняйте у автора на исходной площадке.</span>{loading && <LoaderCircle size={14} className="spin"/>}</div></div></div></section>
  <section className="create-banner"><div className="banner-orbit" aria-hidden="true"/><div><span className="eyebrow">ОТ ИДЕИ — К ЗАПУСКУ</span><h2>У вашей идеи есть будущее.</h2><p>Нужен сайт или приложение? Расскажите о проекте.<br />Мы получим заявку и поможем сделать следующий шаг.</p></div><button className="button lime large" onClick={() => setRequestOpen(true)}>Обсудить проект<ArrowUpRight size={19}/></button></section></main>

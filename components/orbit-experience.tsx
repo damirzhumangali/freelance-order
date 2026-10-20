@@ -27,7 +27,6 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
   const heroRef = useRef<HTMLElement>(null);
   const storyRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const introRef = useRef<HTMLElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
@@ -41,10 +40,9 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
     const story = storyRef.current;
     const hero = heroRef.current;
     const content = contentRef.current;
-    const intro = introRef.current;
     const pin = story?.querySelector<HTMLElement>(".oe-scene-pin");
     const projects = document.getElementById("projects");
-    if (!story || !hero || !content || !intro || !pin) return;
+    if (!story || !hero || !content || !pin) return;
 
     // Native document scrolling drives a short pinned camera sequence.
     // No wheel/touch interception or per-frame React renders.
@@ -80,7 +78,6 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
       hero.style.removeProperty("--oe-image-y");
       content.inert = false;
       content.style.removeProperty("visibility");
-      intro.style.removeProperty("--oe-intro-progress");
       projects?.style.removeProperty("--oe-list-progress");
       projects?.classList.remove("oe-list-motion");
     };
@@ -101,11 +98,10 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
       const framing = phase(0.58, 1, p);
       const camera = phase(0, 0.75, p);
       const title = 1 - phase(0.03, 0.3, p);
-      const caption = phase(0.2, 0.43, p) * (1 - phase(0.72, 0.99, p));
+      const caption = phase(0.2, 0.43, p) * (1 - phase(0.55, 0.8, p));
       const hasFocus = content.contains(document.activeElement);
 
       // Read geometry before writing compositor-only scene properties.
-      const introProgress = phase(0, 0.8, (viewportHeight - intro.getBoundingClientRect().top) / viewportHeight);
       const listProgress = projects ? phase(0, 0.9, (viewportHeight - projects.getBoundingClientRect().top) / viewportHeight) : 1;
       hero.style.setProperty("--oe-image-x", `${currentX.toFixed(2)}px`);
       hero.style.setProperty("--oe-image-y", `${currentY.toFixed(2)}px`);
@@ -123,11 +119,10 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
       story.style.setProperty("--oe-title-y", `${(-phase(0, 0.5, p) * 76).toFixed(2)}px`);
       story.style.setProperty("--oe-small-opacity", (1 - phase(0.06, 0.27, p)).toFixed(4));
       story.style.setProperty("--oe-caption-opacity", (hasFocus ? 0 : caption).toFixed(4));
-      story.style.setProperty("--oe-caption-y", `${((1 - phase(0.18, 0.48, p)) * 42 - phase(0.75, 1, p) * 30).toFixed(2)}px`);
+      story.style.setProperty("--oe-caption-y", `${((1 - phase(0.18, 0.48, p)) * 42 - phase(0.6, 0.85, p) * 30).toFixed(2)}px`);
       story.style.setProperty("--oe-story-progress", p.toFixed(4));
       content.inert = title < 0.02 && !hasFocus;
       content.style.visibility = content.inert ? "hidden" : "visible";
-      intro.style.setProperty("--oe-intro-progress", introProgress.toFixed(4));
       projects?.style.setProperty("--oe-list-progress", listProgress.toFixed(4));
 
       if (Math.abs(target - current) > 0.0001 || Math.abs(pointerX - currentX) + Math.abs(pointerY - currentY) > 0.05) {
@@ -166,7 +161,7 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
     const leave = () => { pointerX = 0; pointerY = 0; update(); };
     const observer = new ResizeObserver(measure);
     observer.observe(story);
-    observer.observe(intro);
+    if (projects) observer.observe(projects);
     measure();
     void document.fonts.ready.then(() => { if (alive) measure(); });
     window.addEventListener("scroll", update, { passive: true });
@@ -236,7 +231,7 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
         </button>
       </header>
 
-      <noscript><style>{`.oe-scroll-story{height:auto!important}.oe-scene-pin{position:relative!important;height:auto!important}.oe-scroll-story .oe-hero{height:100svh!important;min-height:620px!important}.oe-scroll-story+.oe-intro{margin-top:0!important;border-radius:0!important}.oe-scene-caption,.oe-story-meter{display:none!important}`}</style></noscript>
+      <noscript><style>{`.oe-scroll-story{height:auto!important}.oe-scene-pin{position:relative!important;height:auto!important}.oe-scroll-story .oe-hero{height:100svh!important;min-height:620px!important}.oe-scene-caption,.oe-story-meter{display:none!important}`}</style></noscript>
       <div className="oe-scroll-story" id="orbit-home" ref={storyRef} data-webgl-ready={sceneReady ? "true" : "false"}>
       <div className="oe-scene-pin">
       <section className="oe-hero" ref={heroRef} aria-labelledby="orbit-hero-title">
@@ -256,7 +251,7 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
           <div className="oe-hero-bottom">
             <p>Ваши идеи. Ваш талант.<br />Следующий проект, который хочется создать.</p>
             <a href="#projects" className="oe-hero-link">Найти свой проект<span><ArrowUpRight size={21} strokeWidth={1.25} aria-hidden="true" /></span></a>
-            <a href="#orbit-about" className="oe-scroll" aria-label="Узнать о платформе"><span /><ArrowDown size={16} strokeWidth={1.2} aria-hidden="true" /></a>
+            <a href="#projects" className="oe-scroll" aria-label="Перейти к заказам"><span /><ArrowDown size={16} strokeWidth={1.2} aria-hidden="true" /></a>
           </div>
         </div>
         <div className="oe-scene-caption" aria-hidden="true">
@@ -268,26 +263,6 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
       </section>
       </div>
       </div>
-
-      <section className="oe-intro" id="orbit-about" ref={introRef} aria-labelledby="orbit-intro-title">
-        <div className="oe-intro-kicker"><span className="oe-overline">Пространство возможностей</span><span>01 / О ПЛАТФОРМЕ</span></div>
-        <div className="oe-intro-grid">
-          <div className="oe-intro-heading">
-            <h2 id="orbit-intro-title">Место, где идеи<br />находят <em>своих людей.</em></h2>
-            <OrbitEmblem className="oe-intro-emblem" />
-          </div>
-          <div className="oe-intro-copy">
-            <span className="oe-intro-dash" aria-hidden="true" />
-            <p>Хорошие проекты начинаются со встречи. Идеи встречают опыт, а талант — возможность создать что-то значимое.</p>
-            <p>Мы собираем заказы на сайты и приложения с реальных площадок и принимаем заявки напрямую. В каждом проекте — источник и понятный способ связи.</p>
-            <button className="oe-text-link" onClick={onInfo}>Как устроен Orbit<ArrowUpRight size={16} strokeWidth={1.25} aria-hidden="true" /></button>
-          </div>
-        </div>
-        <div className="oe-intro-footer">
-          <p>Для тех, кто создаёт.<br /><span>И тех, кто задумал большее.</span></p>
-          <a href="#projects" className="oe-intro-projects"><span>Открыть проекты</span><span className="oe-circle-arrow"><ArrowDown size={22} strokeWidth={1.15} aria-hidden="true" /></span></a>
-        </div>
-      </section>
 
       <dialog ref={dialogRef} className="oe-menu-dialog" id="orbit-navigation-menu" aria-labelledby="orbit-menu-title" onCancel={event => { event.preventDefault(); closeMenu(); }} onClose={() => { if (isMenuOpen.current) closeMenu(); }}>
         <div className="oe-menu-inner">
