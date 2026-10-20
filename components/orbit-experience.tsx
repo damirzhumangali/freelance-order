@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowUpRight, Bookmark, Menu, X } from "lucide-react";
 import "./orbit-experience.css";
+import OrbitScene, { type OrbitSceneMotion } from "./orbit-scene";
 
 type OrbitExperienceProps = {
   onRequest: () => void;
@@ -33,6 +34,8 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
   const previousOverflow = useRef("");
   const isMenuOpen = useRef(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sceneReady, setSceneReady] = useState(false);
+  const sceneMotion = useRef<OrbitSceneMotion>({ progress: 0, pointerX: 0, pointerY: 0 });
 
   useEffect(() => {
     const story = storyRef.current;
@@ -44,7 +47,7 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
     if (!story || !hero || !content || !intro || !pin) return;
 
     // Native document scrolling drives a short pinned camera sequence.
-    // No wheel/touch interception, timers, React renders, or animation dependency.
+    // No wheel/touch interception or per-frame React renders.
     const staticMode = window.matchMedia("(prefers-reduced-motion: reduce), (max-height: 620px)");
     const clamp = (value: number) => Math.max(0, Math.min(1, value));
     const phase = (start: number, end: number, value: number) => {
@@ -68,6 +71,9 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
       cancelAnimationFrame(frame);
       frame = 0;
       previousTime = 0;
+      sceneMotion.current.progress = 0;
+      sceneMotion.current.pointerX = 0;
+      sceneMotion.current.pointerY = 0;
       story.removeAttribute("data-scroll-active");
       story.removeAttribute("style");
       hero.style.removeProperty("--oe-image-x");
@@ -89,6 +95,9 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
       currentY += (pointerY - currentY) * ease;
       if (Math.abs(current - target) < 0.0001) current = target;
       const p = current;
+      sceneMotion.current.progress = p;
+      sceneMotion.current.pointerX = currentX / 5;
+      sceneMotion.current.pointerY = currentY / 3.5;
       const framing = phase(0.58, 1, p);
       const camera = phase(0, 0.75, p);
       const title = 1 - phase(0.03, 0.3, p);
@@ -108,6 +117,7 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
       story.style.setProperty("--oe-frame-inset", `${(framing * Math.min(window.innerWidth * 0.047, 66)).toFixed(2)}px`);
       story.style.setProperty("--oe-frame-radius", `${(framing * 36).toFixed(2)}px`);
       story.style.setProperty("--oe-scene-opacity", (1 - framing * 0.42).toFixed(4));
+      story.style.setProperty("--oe-live-opacity", (1 - phase(0.72, 1, p) * 0.88).toFixed(4));
       story.style.setProperty("--oe-veil-opacity", (phase(0.4, 1, p) * 0.34).toFixed(4));
       story.style.setProperty("--oe-title-opacity", (hasFocus ? Math.max(0.8, title) : title).toFixed(4));
       story.style.setProperty("--oe-title-y", `${(-phase(0, 0.5, p) * 76).toFixed(2)}px`);
@@ -209,6 +219,7 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
 
   return (
     <>
+      <link rel="preload" as="image" href="/images/orbit-courtyard.webp" />
       <a className="oe-skip" href="#projects">К списку проектов</a>
       <header className="oe-navigation" aria-label="Навигация Orbit">
         <button ref={triggerRef} className="oe-menu-trigger" onClick={openMenu} aria-haspopup="dialog" aria-controls="orbit-navigation-menu" aria-expanded={menuOpen}>
@@ -226,11 +237,12 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
       </header>
 
       <noscript><style>{`.oe-scroll-story{height:auto!important}.oe-scene-pin{position:relative!important;height:auto!important}.oe-scroll-story .oe-hero{height:100svh!important;min-height:620px!important}.oe-scroll-story+.oe-intro{margin-top:0!important;border-radius:0!important}.oe-scene-caption,.oe-story-meter{display:none!important}`}</style></noscript>
-      <div className="oe-scroll-story" id="orbit-home" ref={storyRef}>
+      <div className="oe-scroll-story" id="orbit-home" ref={storyRef} data-webgl-ready={sceneReady ? "true" : "false"}>
       <div className="oe-scene-pin">
       <section className="oe-hero" ref={heroRef} aria-labelledby="orbit-hero-title">
         <div className="oe-scene-frame" aria-hidden="true">
           <div className="oe-hero-image" />
+          <OrbitScene motion={sceneMotion} onReady={setSceneReady} />
           <div className="oe-hero-shade" />
         </div>
         <div className="oe-scene-veil" aria-hidden="true" />
@@ -250,7 +262,7 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
         <div className="oe-scene-caption" aria-hidden="true">
           <span className="oe-overline">Из идеи — в реальность</span>
           <p>Большие идеи<br />обретают <em>форму.</em></p>
-          <span className="oe-scene-caption-note">Продолжайте прокрутку — ваш проект уже близко.</span>
+          <span className="oe-scene-caption-note">Сквозь новые перспективы — к вашему проекту.</span>
         </div>
         <div className="oe-story-meter" aria-hidden="true"><span>01</span><span className="oe-meter-track"><span /></span><span>02</span></div>
       </section>
