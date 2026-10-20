@@ -177,9 +177,11 @@ function RequestDialogContent({ onClose, onSuccess }: Omit<RequestDialogProps, "
       }}
       onClick={handleBackdrop}
     >
-      <button className="orbit-request-close" type="button" aria-label="Закрыть форму" onClick={requestClose} disabled={sending}>
-        <X size={20} strokeWidth={1.6} />
-      </button>
+      <div className="orbit-request-toolbar">
+        <button className="orbit-request-close" type="button" aria-label="Закрыть форму" onClick={requestClose} disabled={sending}>
+          <X size={20} strokeWidth={1.6} />
+        </button>
+      </div>
 
       {sent ? (
         <div className="orbit-request-success">

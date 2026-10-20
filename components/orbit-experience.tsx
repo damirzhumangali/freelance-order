@@ -46,7 +46,7 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
 
     // Native document scrolling drives a short pinned camera sequence.
     // No wheel/touch interception or per-frame React renders.
-    const staticMode = window.matchMedia("(prefers-reduced-motion: reduce), (max-height: 620px)");
+    const staticMode = window.matchMedia("(prefers-reduced-motion: reduce), (max-height: 480px)");
     const clamp = (value: number) => Math.max(0, Math.min(1, value));
     const phase = (start: number, end: number, value: number) => {
       const t = clamp((value - start) / (end - start));
@@ -217,7 +217,7 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
       <link rel="preload" as="image" href="/images/orbit-courtyard.webp" />
       <a className="oe-skip" href="#projects">К списку проектов</a>
       <header className="oe-navigation" aria-label="Навигация Orbit">
-        <button ref={triggerRef} className="oe-menu-trigger" onClick={openMenu} aria-haspopup="dialog" aria-controls="orbit-navigation-menu" aria-expanded={menuOpen}>
+        <button ref={triggerRef} className="oe-menu-trigger" onClick={openMenu} aria-label="Открыть меню" aria-haspopup="dialog" aria-controls="orbit-navigation-menu" aria-expanded={menuOpen}>
           <Menu size={18} strokeWidth={1.3} aria-hidden="true" />
           <span>Меню</span>
         </button>
@@ -226,12 +226,12 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
           <span>ORBIT</span>
         </a>
         <button className="oe-inquire" onClick={onRequest}>
-          <span>Оставить заявку</span>
+          <span className="oe-request-full">Оставить заявку</span><span className="oe-request-short">Разместить</span>
           <ArrowUpRight size={15} strokeWidth={1.3} aria-hidden="true" />
         </button>
       </header>
 
-      <noscript><style>{`.oe-scroll-story{height:auto!important}.oe-scene-pin{position:relative!important;height:auto!important}.oe-scroll-story .oe-hero{height:100svh!important;min-height:620px!important}.oe-scene-caption,.oe-story-meter{display:none!important}`}</style></noscript>
+      <noscript><style>{`.oe-scroll-story{height:auto!important}.oe-scene-pin{position:relative!important;height:auto!important}.oe-scroll-story .oe-hero{height:100svh!important;min-height:440px!important}.oe-scene-caption,.oe-story-meter{display:none!important}`}</style></noscript>
       <div className="oe-scroll-story" id="orbit-home" ref={storyRef} data-webgl-ready={sceneReady ? "true" : "false"}>
       <div className="oe-scene-pin">
       <section className="oe-hero" ref={heroRef} aria-labelledby="orbit-hero-title">
@@ -247,9 +247,9 @@ export default function OrbitExperience({ onRequest, onInfo, onSaved, savedCount
         </div>
         <div className="oe-hero-content" ref={contentRef}>
           <p className="oe-hero-preface">У каждого большого проекта<br />есть своя точка притяжения.</p>
-          <h1 id="orbit-hero-title"><span>НОВАЯ ОРБИТА</span></h1>
+          <h1 id="orbit-hero-title"><span><span className="oe-title-word">НОВАЯ</span>{" "}<span className="oe-title-word">ОРБИТА</span></span></h1>
           <div className="oe-hero-bottom">
-            <p>Ваши идеи. Ваш талант.<br />Следующий проект, который хочется создать.</p>
+            <p>Реальные задачи для вашего таланта.<br />Найдите проект, который хочется создать.</p>
             <a href="#projects" className="oe-hero-link">Найти свой проект<span><ArrowUpRight size={21} strokeWidth={1.25} aria-hidden="true" /></span></a>
             <a href="#projects" className="oe-scroll" aria-label="Перейти к заказам"><span /><ArrowDown size={16} strokeWidth={1.2} aria-hidden="true" /></a>
           </div>
