@@ -8,6 +8,13 @@
       "when": 1792475246092,
       "tag": "0000_cynical_vertigo",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1792485766549,
+      "tag": "0001_strong_mad_thinker",
+      "breakpoints": true
     }
   ]
 }

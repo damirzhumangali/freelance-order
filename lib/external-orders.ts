@@ -8,6 +8,8 @@ export type ExternalOrder = {
   source: string;
   sourceUrl: string;
   contactUrl?: string;
+  applicationCount?: number;
+  deadline?: string;
   contactLabel: string;
   contactRestriction: string;
   checkedAt: string;

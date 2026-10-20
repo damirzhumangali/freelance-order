@@ -44,5 +44,22 @@
 .detail-order-context{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;margin:-4px 0 22px;color:#b8c5a5;font-size:11px;line-height:1.7}
 .detail-order-context>span{display:inline-flex;align-items:center;gap:6px}
 .detail-order-context>time{color:#9eac8e;font-size:10px}
+.project-updates{display:flex;flex-direction:column;align-items:flex-end;gap:10px;max-width:310px;flex-shrink:0}
+.project-updates .updated-label{padding-bottom:0;font-size:9px;max-width:none}
+.live-feed-status{display:flex;flex-direction:column;gap:5px;padding:13px 15px;border:1px solid #c8d0b5;border-radius:12px;color:#50683d;background:#e9edda55;font-size:10px;line-height:1.6;max-width:100%;transition:border-color .2s}
+.live-feed-status:hover{border-color:#829872}
+.live-feed-heading{display:flex;align-items:center;gap:7px}
+.live-feed-heading>.status-dot{display:block;flex-shrink:0;width:5px;height:5px;border-radius:50%;background:#627f4b}
+.live-feed-heading>svg{margin-left:auto;flex-shrink:0}
+.live-feed-status>small{font-size:9px;color:#667456;line-height:1.7}
+.live-feed-status.stale,.live-feed-status.error{border-color:#c8b98d;background:#e9e1c633}
+.live-feed-status.stale .status-dot,.live-feed-status.error .status-dot{background:#a18043}
+.live-feed-status.pending .status-dot{background:#939b80}
+.order-context>.application-count{color:#566d40;border-color:#bccaaa;background:#e4ead666}
+@media(max-width:1100px){.project-updates{max-width:260px}.live-feed-status{font-size:9px;padding:11px 12px}.live-feed-status>small{font-size:8px}}
+@media(max-width:800px){.projects-heading{align-items:flex-start}.project-updates{max-width:225px}.live-feed-heading{flex-wrap:wrap;gap:5px}.live-feed-heading>svg{margin-left:0}.project-updates .updated-label{font-size:8px;line-height:1.6;white-space:normal}}
+@media(max-width:620px){.project-updates{align-items:flex-start;max-width:none;gap:12px;margin-top:21px}.project-updates .updated-label{margin-top:0;font-size:9px}.live-feed-status{padding:12px 14px;font-size:10px}.live-feed-heading{flex-wrap:nowrap;gap:7px}.live-feed-status>small{font-size:9px}}
 @media(max-width:800px){.order-context{font-size:8px;gap:5px 8px;margin:-7px 0 15px}.order-context>small{font-size:7px}}
 @media(max-width:620px){.order-context{font-size:10px;margin:-8px 0 18px;gap:7px 10px}.order-context>small{font-size:8px}.detail-order-context{font-size:10px;gap:8px 13px}.filter-sidebar>.country-filter{margin-top:3px}}
+
+.card-title h3{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden}
