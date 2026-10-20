@@ -307,28 +307,28 @@
   .results-toolbar > span { gap: 6px; }
   .sort-label { gap: 4px; }
   .sort-label select { font-size: 11px; padding-left: 2px; }
-  .orders-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; }
-  .order-card, .list-view .order-card { padding: 24px 25px 0; border-radius: 11px; }
-  .card-top { margin-bottom: 19px; }
-  .project-icon { width: 45px; height: 45px; }
+  .orders-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .order-card, .list-view .order-card { padding: 14px 18px 0; border-radius: 11px; }
+  .card-top { gap: 10px; margin-bottom: 8px; }
+  .order-card .project-icon { width: 34px; height: 34px; }
+  .order-card .project-icon svg { width: 18px; height: 18px; }
   .card-category > span { font-size: 12px; }
   .card-category > small { font-size: 11px; }
-  .order-context { gap: 7px 11px; font-size: 11px; margin-bottom: 17px; }
-  .order-context > small { font-size: 11px; }
-  .card-title h3, .list-view .card-title h3 { font-size: 37px; line-height: 1.04; margin-bottom: 17px; -webkit-line-clamp: 4; }
-  .card-description, .list-view .card-description { -webkit-line-clamp: 3; font-size: 14px; line-height: 1.85; min-height: 0; margin-bottom: 19px; }
-  .tag-list { margin-bottom: 23px; gap: 7px; }
-  .tag-list button { min-height: 44px; font-size: 12px; padding-inline: 13px; }
-  .tag-list > span { font-size: 12px; }
-  .card-budget { margin-bottom: 11px; padding-top: 3px; }
-  .budget-label { font-size: 10px; }
-  .card-budget > strong { font-size: 38px; }
-  .card-budget > strong.muted-budget { font-size: 29px; }
-  .budget-note { font-size: 12px; }
-  .card-deadline { font-size: 12px; margin-bottom: 19px; }
-  .card-bottom { padding-block: 10px; }
-  .source-badge { font-size: 12px; }
-  .card-bottom > button { font-size: 12px; gap: 7px; }
+  .order-context { gap: 4px 8px; font-size: 11px; margin-bottom: 8px; }
+  .order-context > small { font-size: 10px; padding: 2px 7px; }
+  .card-title h3, .list-view .card-title h3 { font-size: 28px; line-height: 1.1; margin-bottom: 10px; -webkit-line-clamp: 2; }
+  .order-card > .card-description, .order-card > .tag-list { display: none; }
+  .card-budget { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; column-gap: 12px; row-gap: 2px; margin: 0 0 7px; padding-top: 0; }
+  .card-budget > .budget-label { font-size: 10px; letter-spacing: .04em; }
+  .card-budget > strong { font-size: 29px; text-align: right; }
+  .card-budget > strong.muted-budget { font-size: 24px; }
+  .card-budget > .budget-note { grid-column: 1 / -1; text-align: right; font-size: 11px; }
+  .card-deadline { font-size: 11px; line-height: 1.5; margin-bottom: 9px; gap: 6px; }
+  .card-deadline svg { margin-top: 2px; }
+  .card-bottom { padding-block: 7px; }
+  .source-badge { font-size: 11px; }
+  .card-bottom > button { min-height: 44px; padding: 0 12px; border: 1px solid #bdc9ad; border-radius: 24px; background: #e5eadb; font-size: 12px; gap: 6px; }
+  .card-bottom > button:hover { background: #dce5cc; color: #38552d; }
   .board-footnote { margin-top: 26px; font-size: 11px; line-height: 1.9; gap: 8px; }
   .load-warning { flex-wrap: wrap; gap: 5px; padding: 12px 15px; }
   .load-warning button { margin-left: 0; }
@@ -373,9 +373,10 @@
   .projects-heading h2 { font-size: 49px; }
   .live-feed-heading { font-size: 11px; gap: 6px; }
   .live-feed-status > small:nth-of-type(2) { max-width: 125px; }
-  .order-card, .list-view .order-card { padding-inline: 20px; }
-  .card-title h3, .list-view .card-title h3 { font-size: 33px; }
-  .card-budget > strong { font-size: 34px; }
+  .order-card, .list-view .order-card { padding-inline: 16px; }
+  .card-title h3, .list-view .card-title h3 { font-size: 26px; }
+  .card-budget > strong { font-size: 27px; }
+  .card-budget > strong.muted-budget { font-size: 22px; }
   .card-bottom > button { font-size: 11px; gap: 5px; }
   .source-badge { font-size: 11px; }
   .results-toolbar { font-size: 10px; }
